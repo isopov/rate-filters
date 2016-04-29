@@ -35,7 +35,8 @@ public class FilterBenchmark {
 			"GuavaFilter",
 			"AtomicFilter",
 			"SynchronizedDequeFilter",
-			"SingleSchedulerFilter",
+			"BatchSchedulerFilter",
+			"DiscreteSchedulerFilter",
 	})
 	public String filterType;
 	private Filter filter;

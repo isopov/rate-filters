@@ -5,16 +5,16 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class SingleSchedulerFilter implements Filter {
+public class BatchSchedulerFilter implements Filter {
 	private final int n;
 	private final AtomicInteger count = new AtomicInteger(0);
 	private final ScheduledExecutorService scheduler;
 
-	public SingleSchedulerFilter(int n) {
+	public BatchSchedulerFilter(int n) {
 		this(n, TimeUnit.SECONDS);
 	}
 
-	public SingleSchedulerFilter(int n, TimeUnit timeUnit) {
+	public BatchSchedulerFilter(int n, TimeUnit timeUnit) {
 		this.n = n;
 		scheduler = Executors.newSingleThreadScheduledExecutor();
 		scheduler.scheduleAtFixedRate(() -> count.set(0), 1, 1, timeUnit);

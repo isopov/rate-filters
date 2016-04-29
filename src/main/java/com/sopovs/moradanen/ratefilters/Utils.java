@@ -26,8 +26,10 @@ public final class Utils {
 			return new AtomicFilter(10);
 		case "SynchronizedDequeFilter":
 			return new SynchronizedDequeFilter(10);
-		case "SingleSchedulerFilter":
-			return new SingleSchedulerFilter(10);
+		case "BatchSchedulerFilter":
+			return new BatchSchedulerFilter(10);
+		case "DiscreteSchedulerFilter":
+			return new DiscreteSchedulerFilter(10);
 		default:
 			throw new IllegalStateException();
 		}
