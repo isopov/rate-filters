@@ -20,106 +20,94 @@ import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 import org.openjdk.jmh.annotations.Param;
 
-import com.sopovs.moradanen.ratefilters.Filter;
-import com.sopovs.moradanen.ratefilters.FilterBenchmark;
-import com.sopovs.moradanen.ratefilters.Utils;
-
 @RunWith(Parameterized.class)
 public class FilterTest {
 
-	@Parameters(name = "{0}")
-	public static String[] filterTypes() throws Exception {
-		return FilterBenchmark.class.getField("filterType").getAnnotation(Param.class).value();
-	}
+    @Parameters(name = "{0}")
+    public static String[] filterTypes() throws Exception {
+        return FilterBenchmark.class.getField("filterType").getAnnotation(Param.class).value();
+    }
 
-	@Parameter
-	public String filterType;
+    @Parameter
+    public String filterType;
 
-	private Filter filter;
+    private Filter filter;
 
-	@Before
-	public void setup() {
-		filter = Utils.createFilter(filterType);
-	}
+    @Before
+    public void setup() {
+        filter = Utils.createFilter(filterType);
+    }
 
-	@After
-	public void tearDown() {
-		filter.shutdown();
-	}
+    @After
+    public void tearDown() {
+        filter.shutdown();
+    }
 
-	@Test
-	public void testMultipleTthreads() throws InterruptedException {
-		ExecutorService pool = Executors.newFixedThreadPool(10);
-		List<Future<Boolean>> acquisitions = new ArrayList<>();
-		for (int i = 0; i < 1000; i++) {
-			acquisitions.add(pool.submit(filter::isSignalAllowed));
-		}
-		pool.shutdown();
-		pool.awaitTermination(500, TimeUnit.MILLISECONDS);
+    @Test
+    public void testMultipleTthreads() throws InterruptedException {
+        ExecutorService pool = Executors.newFixedThreadPool(10);
+        List<Future<Boolean>> acquisitions = new ArrayList<>();
+        for (int i = 0; i < 1000; i++) {
+            acquisitions.add(pool.submit(filter::isSignalAllowed));
+        }
+        pool.shutdown();
+        pool.awaitTermination(500, TimeUnit.MILLISECONDS);
 
-		assertEquals(1000, acquisitions.size());
-		assertEquals(1000, acquisitions.stream().filter(Future::isDone).count());
+        assertEquals(1000, acquisitions.size());
+        assertEquals(1000, acquisitions.stream().filter(Future::isDone).count());
 
-		long realAcuisitions = acquisitions.stream().map(this::get).filter(Boolean.TRUE::equals).count();
-		assertTrue(realAcuisitions <= 10);
-	}
+        long realAcuisitions = acquisitions.stream().map(this::get).filter(Boolean.TRUE::equals).count();
+        assertTrue(realAcuisitions <= 10);
+    }
 
-	private <T> T get(Future<T> future) {
-		try {
-			return future.get();
-		} catch (InterruptedException | ExecutionException e) {
-			throw new RuntimeException();
-		}
-	}
+    private <T> T get(Future<T> future) {
+        try {
+            return future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException();
+        }
+    }
 
-	@Test
-	public void testSecondAfterSleep() throws InterruptedException {
-		Thread.sleep(500);
-		long start = System.nanoTime();
-		int counter = 0;
-		while (System.nanoTime() - start < TimeUnit.SECONDS.toNanos(1)) {
-			if (filter.isSignalAllowed()) {
-				counter++;
-			}
-		}
-		assertEquals(filter.getClass() + " failed", 10, counter);
-	}
+    @Test
+    public void testSecondAfterSleep() throws InterruptedException {
+        Thread.sleep(500);
+        long start = System.nanoTime();
+        int counter = 0;
+        while (System.nanoTime() - start < TimeUnit.SECONDS.toNanos(1)) {
+            if (filter.isSignalAllowed()) {
+                counter++;
+            }
+        }
+        assertEquals(filter.getClass() + " failed", 10, counter);
+    }
 
-	@Test
-	public void testSecond() {
+    @Test
+    public void testSecond() {
 
-		long start = System.nanoTime();
-		int counter = 0;
-		while (System.nanoTime() - start < TimeUnit.SECONDS.toNanos(1)) {
-			if (filter.isSignalAllowed()) {
-				counter++;
-			}
-		}
-		assertEquals(filter.getClass() + " failed", 10, counter);
-	}
+        long start = System.nanoTime();
+        int counter = 0;
+        while (System.nanoTime() - start < TimeUnit.SECONDS.toNanos(1)) {
+            if (filter.isSignalAllowed()) {
+                counter++;
+            }
+        }
+        assertEquals(filter.getClass() + " failed", 10, counter);
+    }
 
-	@Test
-	public void testBurstOfEventsForbidden() {
-		int counter = 0;
-		for (int i = 0; i < 5; i++) {
-			if (filter.isSignalAllowed()) {
-				counter++;
-			}
-		}
+    @Test
+    public void testBurstOfEvents() {
+        int counter = 0;
+        for (int i = 0; i < 5; i++) {
+            if (filter.isSignalAllowed()) {
+                counter++;
+            }
+        }
 
-		assertEquals(filter.getClass() + " failed", 1, counter);
-	}
-
-	@Test
-	public void testBurstOfEventsAllowed() {
-		int counter = 0;
-		for (int i = 0; i < 5; i++) {
-			if (filter.isSignalAllowed()) {
-				counter++;
-			}
-		}
-
-		assertEquals(filter.getClass() + " failed", 5, counter);
-	}
+        if (filter.burstsAllowed()) {
+            assertEquals(filter.getClass() + " failed", 5, counter);
+        } else {
+            assertEquals(filter.getClass() + " failed", 1, counter);
+        }
+    }
 
 }

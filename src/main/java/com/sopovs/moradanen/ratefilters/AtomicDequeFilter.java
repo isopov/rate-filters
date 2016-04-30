@@ -44,6 +44,11 @@ public class AtomicDequeFilter implements Filter {
     }
 
     @Override
+    public boolean burstsAllowed() {
+        return true;
+    }
+
+    @Override
     public void shutdown() {
         counter.set(0L);
         acquisitions.clear();
