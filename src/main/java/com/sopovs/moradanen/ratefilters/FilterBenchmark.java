@@ -30,36 +30,37 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 public class FilterBenchmark {
 
-	@Param({
-			"SynchronizedFilter",
-			"GuavaFilter",
-			"AtomicFilter",
-			"SynchronizedDequeFilter",
-			"BatchSchedulerFilter",
-			"DiscreteSchedulerFilter",
-	})
-	public String filterType;
-	private Filter filter;
+    @Param({
+            "SynchronizedFilter",
+            "GuavaFilter",
+            "AtomicFilter",
+            "SynchronizedDequeFilter",
+            "BatchSchedulerFilter",
+            "DiscreteSchedulerFilter",
+            "AtomicDequeFilter",
+    })
+    public String filterType;
+    private Filter filter;
 
-	public static void main(String[] args) throws RunnerException {
-		Options opt = new OptionsBuilder().include(".*" + FilterBenchmark.class.getSimpleName() + ".*").build();
-		new Runner(opt).run();
-	}
+    public static void main(String[] args) throws RunnerException {
+        Options opt = new OptionsBuilder().include(".*" + FilterBenchmark.class.getSimpleName() + ".*").build();
+        new Runner(opt).run();
+    }
 
-	@Setup
-	public void setup() {
-		filter = Utils.createFilter(filterType);
-	}
+    @Setup
+    public void setup() {
+        filter = Utils.createFilter(filterType);
+    }
 
-	@TearDown
-	public void tearDown() {
-		filter.shutdown();
-	}
+    @TearDown
+    public void tearDown() {
+        filter.shutdown();
+    }
 
-	@Threads(MAX)
-	@Benchmark
-	public boolean benchmark() {
-		return filter.isSignalAllowed();
-	}
+    @Threads(MAX)
+    @Benchmark
+    public boolean benchmark() {
+        return filter.isSignalAllowed();
+    }
 
 }
